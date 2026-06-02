@@ -273,15 +273,32 @@ color:#9ca3af;
 margin-bottom:20px;
 "
 >
-Mint integration for Ritual testnet
-will be added next.
+Connect your wallet and prepare your Ritual NFT.
 </p>
 
-<button class="mint-btn">
-Coming Soon
-</button>
+<button
+class="generate-btn"
+id="connectWalletBtn"
+onclick="connectWallet()">
+Connect Wallet </button>
+
+<div
+id="walletAddress"
+style="
+margin-top:15px;
+color:#4ade80;
+font-size:14px;
+word-break:break-all;">
+</div>
+
+<button
+class="download-btn"
+id="mintBtn"
+disabled>
+Mint NFT </button>
 
 </div>
+
 
 </div>
 
@@ -583,6 +600,51 @@ canvas.toDataURL(
 );
 
 link.click();
+
+}
+async function connectWallet(){
+
+if(!window.ethereum){
+
+alert(
+"MetaMask is not installed. Please install MetaMask."
+);
+
+return;
+
+}
+
+try{
+
+const accounts =
+await window.ethereum.request({
+method:"eth_requestAccounts"
+});
+
+const address =
+accounts[0];
+
+document
+.getElementById(
+"walletAddress"
+).innerText =
+"Connected: " + address;
+
+document
+.getElementById(
+"mintBtn"
+).disabled = false;
+
+}
+catch(error){
+
+console.error(error);
+
+alert(
+"Wallet connection failed."
+);
+
+}
 
 }
 
