@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>Ritual NFT Cards</title>
+
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.9.0/dist/ethers.min.js"></script>
 
 <style>
 
@@ -105,17 +106,9 @@ background:#22c55e;
 color:white;
 }
 
-.generate-btn:hover{
-background:#16a34a;
-}
-
 .download-btn{
 background:#166534;
 color:white;
-}
-
-.download-btn:hover{
-background:#14532d;
 }
 
 .preview{
@@ -128,10 +121,7 @@ canvas{
 width:100%;
 max-width:550px;
 border-radius:20px;
-
-box-shadow:
-0 0 30px rgba(34,197,94,.3),
-0 0 80px rgba(34,197,94,.15);
+box-shadow:0 0 30px rgba(34,197,94,.3),0 0 80px rgba(34,197,94,.15);
 }
 
 .avatar-preview{
@@ -157,34 +147,11 @@ padding:30px;
 text-align:center;
 }
 
-.mint-box h3{
-color:#4ade80;
-margin-bottom:15px;
-}
-
-.mint-btn{
-background:#374151;
-color:white;
-cursor:not-allowed;
-}
-
 .footer{
 margin-top:60px;
 padding:30px;
 text-align:center;
 color:#6b7280;
-}
-
-@media(max-width:900px){
-
-.grid{
-grid-template-columns:1fr;
-}
-
-.hero h1{
-font-size:38px;
-}
-
 }
 
 </style>
@@ -193,13 +160,8 @@ font-size:38px;
 <body>
 
 <section class="hero">
-
 <h1>🧬 Ritual NFT Cards</h1>
-
-<p>
-Create your Ritual identity card and prepare it for minting.
-</p>
-
+<p>Create your Ritual identity card and mint it on-chain</p>
 </section>
 
 <div class="container">
@@ -211,94 +173,36 @@ Create your Ritual identity card and prepare it for minting.
 <h2>Create Card</h2>
 
 <label>X Username</label>
-
-<input
-id="username"
-placeholder="@username"
->
+<input id="username" placeholder="@username">
 
 <div class="avatar-preview">
-
-<img
-id="avatarPreview"
-src=""
-alt="Avatar Preview"
->
-
+<img id="avatarPreview">
 </div>
 
-<label>Style</label>
-
-<select id="style">
-<option value="genesis">
-Genesis Green
-</option>
-</select>
-
-<button
-class="generate-btn"
-onclick="generateCard()"
->
-Generate Card
-</button>
-
-<button
-class="download-btn"
-onclick="downloadCard()"
->
-Download PNG
-</button>
+<button class="generate-btn" onclick="generateCard()">Generate Card</button>
+<button class="download-btn" onclick="downloadCard()">Download PNG</button>
 
 </div>
 
 <div class="panel preview">
-
-<canvas
-id="cardCanvas"
-width="800"
-height="1000">
-</canvas>
-
+<canvas id="cardCanvas" width="800" height="1000"></canvas>
 </div>
 
 </div>
 
 <div class="mint-box">
 
-<h3>Mint NFT</h3>
+<h2 style="color:#4ade80;">Mint NFT</h2>
 
-<p
-style="
-color:#9ca3af;
-margin-bottom:20px;
-"
->
-Connect your wallet and prepare your Ritual NFT.
-</p>
+<button class="generate-btn" onclick="connectWallet()">Connect Wallet</button>
 
-<button
-class="generate-btn"
-id="connectWalletBtn"
-onclick="connectWallet()">
-Connect Wallet </button>
+<div id="walletAddress" style="margin-top:15px;color:#4ade80;"></div>
 
-<div
-id="walletAddress"
-style="
-margin-top:15px;
-color:#4ade80;
-font-size:14px;
-word-break:break-all;">
-</div>
-
-<button
-class="download-btn"
-id="mintBtn"
-disabled>
-Mint NFT </button>
+<button class="download-btn" id="mintBtn" onclick="mintNFT()" disabled>
+Mint NFT
+</button>
 
 </div>
-
 
 </div>
 
@@ -308,342 +212,141 @@ Ritual Genesis Collection
 
 <script>
 
-const canvas =
-document.getElementById("cardCanvas");
+const contractAddress = "0xdB8FF15f6D9c7a35F86542a9052608DF7a16FB8a";
 
-const ctx =
-canvas.getContext("2d");
+const contractABI = [
+"function mint(address to, string tokenURI)"
+];
 
 let currentUser = "ritual";
 
+const canvas = document.getElementById("cardCanvas");
+const ctx = canvas.getContext("2d");
+
 function loadImage(src){
-
-return new Promise((resolve,reject)=>{
-
+return new Promise((res,rej)=>{
 const img = new Image();
-
 img.crossOrigin = "anonymous";
-
-img.onload = ()=>resolve(img);
-
-img.onerror = reject;
-
+img.onload = ()=>res(img);
+img.onerror = rej;
 img.src = src;
-
 });
-
 }
 
-document
-.getElementById("username")
-.addEventListener("input",function(){
+document.getElementById("username").addEventListener("input",function(){
+const u = this.value.replace("@","").trim();
+const img = document.getElementById("avatarPreview");
 
-const username =
-this.value
-.replace("@","")
-.trim();
-
-const avatar =
-document.getElementById(
-"avatarPreview"
-);
-
-if(username){
-
-avatar.src =
-`https://unavatar.io/x/${username}`;
-
-avatar.style.display =
-"block";
-
+if(u){
+img.src = `https://unavatar.io/x/${u}`;
+img.style.display = "block";
 }else{
-
-avatar.style.display =
-"none";
-
+img.style.display = "none";
 }
-
 });
 
 async function generateCard(){
 
-const usernameInput =
-document
-.getElementById("username")
-.value
-.trim();
-
-if(!usernameInput){
-
-alert("Enter username");
-
-return;
-
-}
-
-const username =
-usernameInput
-.replace("@","");
+const username = document.getElementById("username").value.replace("@","").trim();
+if(!username){ alert("Enter username"); return; }
 
 currentUser = username;
 
-ctx.clearRect(
-0,
-0,
-800,
-1000
-);
+ctx.clearRect(0,0,800,1000);
 
-const gradient =
-ctx.createLinearGradient(
-0,
-0,
-800,
-1000
-);
+const g = ctx.createLinearGradient(0,0,800,1000);
+g.addColorStop(0,"#06120d");
+g.addColorStop(1,"#0f2d18");
 
-gradient.addColorStop(
-0,
-"#06120d"
-);
+ctx.fillStyle = g;
+ctx.fillRect(0,0,800,1000);
 
-gradient.addColorStop(
-1,
-"#0f2d18"
-);
+ctx.strokeStyle="#22c55e";
+ctx.lineWidth=8;
+ctx.strokeRect(25,25,750,950);
 
-ctx.fillStyle =
-gradient;
-
-ctx.fillRect(
-0,
-0,
-800,
-1000
-);
-
-ctx.strokeStyle =
-"#22c55e";
-
-ctx.lineWidth = 8;
-
-ctx.strokeRect(
-25,
-25,
-750,
-950
-);
-
-ctx.fillStyle =
-"#4ade80";
-
-ctx.font =
-"bold 50px Arial";
-
-ctx.textAlign =
-"center";
-
-ctx.fillText(
-"RITUAL CARD",
-400,
-90
-);
+ctx.fillStyle="#4ade80";
+ctx.font="bold 50px Arial";
+ctx.textAlign="center";
+ctx.fillText("RITUAL CARD",400,90);
 
 try{
-
-const avatar =
-await loadImage(
-`https://unavatar.io/x/${username}`
-);
-
+const avatar = await loadImage(`https://unavatar.io/x/${username}`);
 ctx.save();
-
 ctx.beginPath();
-
-ctx.arc(
-400,
-300,
-130,
-0,
-Math.PI*2
-);
-
+ctx.arc(400,300,130,0,Math.PI*2);
 ctx.clip();
-
-ctx.drawImage(
-avatar,
-270,
-170,
-260,
-260
-);
-
+ctx.drawImage(avatar,270,170,260,260);
 ctx.restore();
+}catch(e){}
 
-}catch(error){
-
-ctx.fillStyle =
-"#374151";
-
+ctx.strokeStyle="#4ade80";
+ctx.lineWidth=6;
 ctx.beginPath();
-
-ctx.arc(
-400,
-300,
-130,
-0,
-Math.PI*2
-);
-
-ctx.fill();
-
-}
-
-ctx.strokeStyle =
-"#4ade80";
-
-ctx.lineWidth = 6;
-
-ctx.beginPath();
-
-ctx.arc(
-400,
-300,
-130,
-0,
-Math.PI*2
-);
-
+ctx.arc(400,300,130,0,Math.PI*2);
 ctx.stroke();
 
-ctx.fillStyle =
-"white";
+ctx.fillStyle="white";
+ctx.font="bold 42px Arial";
+ctx.fillText("@"+username,400,530);
 
-ctx.font =
-"bold 42px Arial";
+ctx.fillStyle="#9ca3af";
+ctx.font="26px Arial";
+ctx.fillText("Genesis Collection",400,580);
 
-ctx.fillText(
-"@" + username,
-400,
-530
-);
-
-ctx.fillStyle =
-"#9ca3af";
-
-ctx.font =
-"26px Arial";
-
-ctx.fillText(
-"Genesis Collection",
-400,
-580
-);
-
-ctx.fillStyle =
-"#4ade80";
-
-ctx.font =
-"24px Arial";
-
-ctx.fillText(
-"Ritual Explorer",
-400,
-650
-);
-
-ctx.strokeStyle =
-"rgba(74,222,128,.4)";
-
-ctx.strokeRect(
-150,
-720,
-500,
-120
-);
-
-ctx.fillStyle =
-"#4ade80";
-
-ctx.font =
-"22px Arial";
-
-ctx.fillText(
-"Status: Active",
-400,
-790
-);
-
-ctx.fillStyle =
-"#9ca3af";
-
-ctx.fillText(
-"Mint ID: Pending",
-400,
-830
-);
-
+ctx.fillStyle="#4ade80";
+ctx.font="24px Arial";
+ctx.fillText("Ritual Explorer",400,650);
 }
 
 function downloadCard(){
-
-const link =
-document.createElement("a");
-
-link.download =
-currentUser +
-"-ritual-card.png";
-
-link.href =
-canvas.toDataURL(
-"image/png"
-);
-
-link.click();
-
+const a=document.createElement("a");
+a.download=currentUser+"-ritual.png";
+a.href=canvas.toDataURL();
+a.click();
 }
+
 async function connectWallet(){
 
 if(!window.ethereum){
-
-alert(
-"MetaMask is not installed. Please install MetaMask."
-);
-
+alert("Install MetaMask");
 return;
-
 }
+
+const accounts = await ethereum.request({method:"eth_requestAccounts"});
+const address = accounts[0];
+
+document.getElementById("walletAddress").innerText = "Connected: "+address;
+document.getElementById("mintBtn").disabled = false;
+}
+
+async function mintNFT(){
 
 try{
 
-const accounts =
-await window.ethereum.request({
-method:"eth_requestAccounts"
-});
+const provider = new ethers.BrowserProvider(window.ethereum);
+const signer = await provider.getSigner();
 
-const address =
-accounts[0];
-
-document
-.getElementById(
-"walletAddress"
-).innerText =
-"Connected: " + address;
-
-document
-.getElementById(
-"mintBtn"
-).disabled = false;
-
-}
-catch(error){
-
-console.error(error);
-
-alert(
-"Wallet connection failed."
+const contract = new ethers.Contract(
+contractAddress,
+contractABI,
+signer
 );
 
+const address = await signer.getAddress();
+
+const tokenURI = "https://example.com/meta.json";
+
+const tx = await contract.mint(address, tokenURI);
+
+alert("Minting...");
+await tx.wait();
+
+alert("NFT minted!");
+
+}catch(e){
+console.error(e);
+alert("Mint failed");
 }
 
 }
@@ -654,4 +357,3 @@ generateCard();
 
 </body>
 </html>
-```
