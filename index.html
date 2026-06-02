@@ -23,11 +23,7 @@ padding:60px 20px;
 text-align:center;
 }
 
-.hero h1{
-font-size:52px;
-color:#4ade80;
-}
-
+.hero h1{font-size:52px;color:#4ade80;}
 .hero p{color:#9ca3af;}
 
 .container{max-width:1300px;margin:auto;padding:20px;}
@@ -74,6 +70,15 @@ border-radius:20px;
 box-shadow:0 0 30px rgba(34,197,94,.3);
 }
 
+.avatar-preview img{
+width:100px;
+height:100px;
+border-radius:50%;
+border:3px solid #22c55e;
+display:none;
+margin-top:10px;
+}
+
 .mint-box{
 margin-top:40px;
 padding:30px;
@@ -107,6 +112,10 @@ color:#6b7280;
 
 <input id="username" placeholder="@username">
 
+<div class="avatar-preview">
+<img id="avatarPreview">
+</div>
+
 <button class="generate-btn" onclick="generateCard()">Generate Card</button>
 <button class="download-btn" onclick="downloadCard()">Download PNG</button>
 
@@ -124,7 +133,7 @@ color:#6b7280;
 
 <button class="generate-btn" onclick="connectWallet()">Connect Wallet</button>
 
-<div id="walletAddress" style="margin-top:10px;color:#4ade80;"></div>
+<div id="walletAddress" style="color:#4ade80;margin-top:10px;"></div>
 
 <button class="download-btn" id="mintBtn" onclick="mintNFT()" disabled>
 Mint NFT
@@ -140,8 +149,8 @@ Ritual Genesis Collection
 
 <script>
 
-/* 🔑 ВСТАВЬ СЮДА КЛЮЧ */
-const NFT_STORAGE_KEY = "da4d2e64.5ed1c89d39c94c9dbed75c5bbe371988";
+/* 🔑 KEY HERE */
+const NFT_STORAGE_KEY = "ВСТАВЬ_СЮДА_КЛЮЧ";
 
 const contractAddress = "0xdB8FF15f6D9c7a35F86542a9052608DF7a16FB8a";
 
@@ -153,6 +162,59 @@ let currentUser = "ritual";
 
 const canvas = document.getElementById("cardCanvas");
 const ctx = canvas.getContext("2d");
+
+/* ===================== */
+/* AVATAR FIX (X SAFE)   */
+/* ===================== */
+
+document.getElementById("username").addEventListener("input", function(){
+
+const username = this.value.replace("@","").trim();
+const img = document.getElementById("avatarPreview");
+
+if(!username){
+img.style.display = "none";
+return;
+}
+
+img.src = `https://unavatar.io/x/${username}`;
+img.style.display = "block";
+
+});
+
+/* fallback avatar for canvas */
+async function drawAvatar(username){
+
+try{
+
+const img = new Image();
+img.crossOrigin = "anonymous";
+img.src = `https://unavatar.io/x/${username}`;
+
+await new Promise((res,rej)=>{
+img.onload = res;
+img.onerror = rej;
+});
+
+ctx.save();
+ctx.beginPath();
+ctx.arc(400,300,130,0,Math.PI*2);
+ctx.clip();
+ctx.drawImage(img,270,170,260,260);
+ctx.restore();
+
+}catch(e){
+
+ctx.fillStyle="#374151";
+ctx.beginPath();
+ctx.arc(400,300,130,0,Math.PI*2);
+ctx.fill();
+
+}
+
+}
+
+/* ===================== */
 
 function generateCard(){
 
@@ -190,6 +252,10 @@ ctx.fillText("Genesis Collection",400,580);
 ctx.fillStyle="#4ade80";
 ctx.font="24px Arial";
 ctx.fillText("Ritual Explorer",400,650);
+
+/* avatar */
+drawAvatar(username);
+
 }
 
 function downloadCard(){
@@ -215,7 +281,9 @@ document.getElementById("walletAddress").innerText =
 document.getElementById("mintBtn").disabled = false;
 }
 
-/* ---- IPFS SAFE ---- */
+/* ===================== */
+/* IPFS SAFE */
+/* ===================== */
 
 function canvasToBlob(){
 return new Promise(res=>{
@@ -245,7 +313,9 @@ url:`https://ipfs.io/ipfs/${data.value.cid}`
 };
 }
 
-/* ---- MINT ---- */
+/* ===================== */
+/* MINT */
+/* ===================== */
 
 async function mintNFT(){
 
