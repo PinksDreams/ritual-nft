@@ -5,31 +5,29 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ritual NFT Cards</title>
 
-<!-- ✔ Ethers v5 (СТАБИЛЬНЫЙ) -->
 <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@metamask/jazzicon"></script>
 
 <style>
-*{margin:0;padding:0;box-sizing:border-box;}
-
 body{
+margin:0;
 font-family:Arial;
 background:#05120b;
 color:white;
-min-height:100vh;
 }
 
 .hero{
-padding:50px;
 text-align:center;
+padding:40px;
 }
 
 .hero h1{
-font-size:48px;
 color:#4ade80;
+font-size:44px;
 }
 
 .container{
-max-width:1200px;
+max-width:1100px;
 margin:auto;
 padding:20px;
 }
@@ -37,21 +35,20 @@ padding:20px;
 .grid{
 display:grid;
 grid-template-columns:420px 1fr;
-gap:30px;
+gap:20px;
 }
 
 .panel{
-background:rgba(255,255,255,0.04);
-border:1px solid rgba(74,222,128,.2);
-border-radius:20px;
+background:rgba(255,255,255,0.05);
 padding:20px;
+border-radius:16px;
 }
 
 input{
 width:100%;
 padding:12px;
-border-radius:10px;
 border:none;
+border-radius:10px;
 background:#102117;
 color:white;
 }
@@ -59,7 +56,7 @@ color:white;
 button{
 width:100%;
 padding:12px;
-margin-top:15px;
+margin-top:10px;
 border:none;
 border-radius:10px;
 cursor:pointer;
@@ -71,24 +68,25 @@ font-weight:bold;
 
 canvas{
 width:100%;
-max-width:500px;
-border-radius:20px;
+border-radius:16px;
 box-shadow:0 0 25px rgba(34,197,94,.3);
 }
 
+.avatar{
+width:80px;
+height:80px;
+border-radius:50%;
+margin-top:10px;
+}
+
 .mint-box{
-margin-top:40px;
-padding:25px;
+margin-top:30px;
+padding:20px;
 border:1px solid rgba(74,222,128,.2);
-border-radius:20px;
+border-radius:16px;
 text-align:center;
 }
 
-.footer{
-margin-top:50px;
-text-align:center;
-color:#6b7280;
-}
 </style>
 </head>
 
@@ -96,7 +94,7 @@ color:#6b7280;
 
 <div class="hero">
 <h1>🧬 Ritual NFT Cards</h1>
-<p>Create & Mint your NFT</p>
+<p>Create & Mint NFT</p>
 </div>
 
 <div class="container">
@@ -109,13 +107,17 @@ color:#6b7280;
 
 <input id="username" placeholder="@username">
 
+<div>
+<img id="avatar" class="avatar">
+</div>
+
 <button class="generate-btn" onclick="generateCard()">Generate</button>
 <button class="download-btn" onclick="downloadCard()">Download</button>
 
 </div>
 
 <div class="panel">
-<canvas id="cardCanvas" width="800" height="1000"></canvas>
+<canvas id="canvas" width="800" height="1000"></canvas>
 </div>
 
 </div>
@@ -126,7 +128,7 @@ color:#6b7280;
 
 <button class="generate-btn" onclick="connectWallet()">Connect Wallet</button>
 
-<div id="walletAddress" style="margin-top:10px;color:#4ade80;"></div>
+<div id="wallet"></div>
 
 <button class="download-btn" id="mintBtn" onclick="mintNFT()" disabled>
 Mint NFT
@@ -136,16 +138,11 @@ Mint NFT
 
 </div>
 
-<div class="footer">
-Ritual Genesis Collection
-</div>
-
 <script>
 
-/* 🔑 ВСТАВЬ КЛЮЧ ТУТ */
-const NFT_STORAGE_KEY = "da4d2e64.5ed1c89d39c94c9dbed75c5bbe371988";
+/* 🔑 ВСТАВЬ КЛЮЧ СЮДА */
+const WEB3_STORAGE_KEY = "da4d2e64.5ed1c89d39c94c9dbed75c5bbe371988";
 
-/* CONTRACT */
 const contractAddress = "0xdB8FF15f6D9c7a35F86542a9052608DF7a16FB8a";
 
 const contractABI = [
@@ -154,17 +151,35 @@ const contractABI = [
 
 let currentUser = "ritual";
 
-const canvas = document.getElementById("cardCanvas");
+const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
-/* =====================
+/* ======================
+   AVATAR (100% STABLE)
+====================== */
+
+function getAvatar(username){
+return `https://api.dicebear.com/7.x/identicon/svg?seed=${username}`;
+}
+
+document.getElementById("username").addEventListener("input", e=>{
+const u = e.target.value.replace("@","").trim();
+if(!u){
+document.getElementById("avatar").style.display="none";
+return;
+}
+document.getElementById("avatar").src = getAvatar(u);
+document.getElementById("avatar").style.display="block";
+});
+
+/* ======================
    CARD
-===================== */
+====================== */
 
 function generateCard(){
 
 const username = document.getElementById("username").value.replace("@","").trim();
-if(!username){ alert("Enter username"); return; }
+if(!username) return alert("Enter username");
 
 currentUser = username;
 
@@ -190,26 +205,22 @@ ctx.fillStyle="white";
 ctx.font="bold 42px Arial";
 ctx.fillText("@"+username,400,530);
 
-ctx.fillStyle="#9ca3af";
-ctx.font="26px Arial";
-ctx.fillText("Genesis Collection",400,580);
-
-ctx.fillStyle="#4ade80";
-ctx.font="24px Arial";
-ctx.fillText("Ritual Explorer",400,650);
-
 }
+
+/* ======================
+   DOWNLOAD
+====================== */
 
 function downloadCard(){
 const a=document.createElement("a");
-a.download=currentUser+"-ritual.png";
+a.download=currentUser+".png";
 a.href=canvas.toDataURL();
 a.click();
 }
 
-/* =====================
+/* ======================
    WALLET
-===================== */
+====================== */
 
 async function connectWallet(){
 
@@ -222,55 +233,44 @@ const provider = new ethers.providers.Web3Provider(window.ethereum);
 await provider.send("eth_requestAccounts", []);
 const signer = provider.getSigner();
 
-const address = await signer.getAddress();
+const addr = await signer.getAddress();
 
-document.getElementById("walletAddress").innerText =
-"Connected: " + address;
+document.getElementById("wallet").innerText =
+"Connected: " + addr;
 
 document.getElementById("mintBtn").disabled = false;
 }
 
-/* =====================
-   IPFS
-===================== */
-
-function canvasToBlob(){
-return new Promise(res=>{
-canvas.toBlob(res,"image/png");
-});
-}
+/* ======================
+   IPFS (STABLE WEB3.STORAGE)
+====================== */
 
 async function uploadToIPFS(blob){
 
-const res = await fetch("https://api.nft.storage/upload", {
+const res = await fetch("https://api.web3.storage/upload", {
 method:"POST",
 headers:{
-Authorization:`Bearer ${NFT_STORAGE_KEY}`
+Authorization:`Bearer ${WEB3_STORAGE_KEY}`
 },
 body: blob
 });
 
 const data = await res.json();
 
-if(!data.ok){
-throw new Error("IPFS upload failed");
+if(!res.ok){
+throw new Error("IPFS failed");
 }
 
-return data.value.cid;
+return data.cid;
 }
 
-/* =====================
+/* ======================
    MINT
-===================== */
+====================== */
 
 async function mintNFT(){
 
 try{
-
-if(!window.ethereum){
-alert("Install MetaMask");
-return;
-}
 
 const provider = new ethers.providers.Web3Provider(window.ethereum);
 const signer = provider.getSigner();
@@ -283,28 +283,22 @@ signer
 
 const address = await signer.getAddress();
 
-alert("Uploading image...");
+/* image */
+const imgBlob = await new Promise(r=>canvas.toBlob(r,"image/png"));
+const imgCID = await uploadToIPFS(imgBlob);
+const imageURL = `https://ipfs.io/ipfs/${imgCID}`;
 
-const imgBlob = await canvasToBlob();
-const imageCID = await uploadToIPFS(imgBlob);
-const imageURL = `https://ipfs.io/ipfs/${imageCID}`;
-
+/* metadata */
 const metadata = {
-name:`Ritual NFT - @${currentUser}`,
+name:`Ritual NFT @${currentUser}`,
 image:imageURL
 };
 
-alert("Uploading metadata...");
-
 const metaCID = await uploadToIPFS(
-new Blob([JSON.stringify(metadata)],{
-type:"application/json"
-})
+new Blob([JSON.stringify(metadata)],{type:"application/json"})
 );
 
 const tokenURI = `https://ipfs.io/ipfs/${metaCID}`;
-
-alert("Minting...");
 
 const tx = await contract.mint(address, tokenURI);
 await tx.wait();
@@ -312,10 +306,8 @@ await tx.wait();
 alert("Mint SUCCESS!");
 
 }catch(e){
-
 console.error(e);
 alert("Mint failed — check console");
-
 }
 
 }
