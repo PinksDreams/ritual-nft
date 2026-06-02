@@ -246,48 +246,49 @@ document.getElementById("mintBtn").disabled = false;
    MINT (NO IPFS)
 ====================== */
 
-async function mintNFT(){
+async function mintNFT() {
+  try {
 
-try{
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const signer = await provider.getSigner();
 
-const provider = new ethers.providers.Web3Provider(window.ethereum);
-const signer = provider.getSigner();
+    const contract = new ethers.Contract(
+      contractAddress,
+      contractABI,
+      signer
+    );
 
-const contract = new ethers.Contract(
-contractAddress,
-contractABI,
-signer
-);
+    const address = await signer.getAddress();
 
-const address = await signer.getAddress();
+    // image
+    const image = canvas.toDataURL("image/png");
 
-/* image */
-const image = canvas.toDataURL("image/png");
+    // metadata
+    const metadata = {
+      name: `Ritual NFT @${currentUser}`,
+      description: "Ritual NFT Card",
+      image: image
+    };
 
-/* metadata */
-const metadata = {
-name:`Ritual NFT @${currentUser}`,
-description:"Ritual NFT Card",
-image:image
-};
+    // IMPORTANT: safer encoding than btoa
+    const json = JSON.stringify(metadata);
+    const base64 = btoa(unescape(encodeURIComponent(json)));
 
-/* base64 tokenURI (NO IPFS) */
-const tokenURI =
-"data:application/json;base64," +
-btoa(JSON.stringify(metadata));
+    const tokenURI = `data:application/json;base64,${base64}`;
 
-const tx = await contract.mint(address, tokenURI);
-await tx.wait();
+    console.log("Minting with:", tokenURI);
 
-alert("Mint SUCCESS!");
+    const tx = await contract.mint(address, tokenURI);
 
-}catch(e){
-console.error(e);
-alert("Mint failed — check console");
+    await tx.wait();
+
+    alert("Mint SUCCESS!");
+
+  } catch (e) {
+    console.error("Mint error:", e);
+    alert("Mint failed — check console");
+  }
 }
-
-}
-
 generateCard();
 
 </script>
