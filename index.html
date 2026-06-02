@@ -10,7 +10,7 @@
 body{
 margin:0;
 font-family:Arial;
-background:#07130d;
+background:#06130c;
 color:white;
 text-align:center;
 }
@@ -47,7 +47,7 @@ box-shadow:0 0 30px rgba(34,197,94,.3);
 
 <body>
 
-<h1>🧬 Ritual NFT Cards</h1>
+<h1>🧬 Ritual NFT Generator</h1>
 
 <input id="username" placeholder="@username">
 
@@ -69,16 +69,36 @@ box-shadow:0 0 30px rgba(34,197,94,.3);
 
 <script>
 
+/* =========================
+   CONTRACT CONFIG
+========================= */
+
 const contractAddress = "0xdB8FF15f6D9c7a35F86542a9052608DF7a16FB8a";
 
 const contractABI = [
   "function mint(address to, string tokenURI)"
 ];
 
-let currentUser = "ritual";
+/* =========================
+   AVATAR (STABLE - NO TWITTER)
+========================= */
+
+function getAvatar(username){
+  return `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(username)}`;
+}
+
+/* =========================
+   CANVAS SETUP
+========================= */
 
 const canvas = document.getElementById("card");
 const ctx = canvas.getContext("2d");
+
+let currentUser = "ritual";
+
+/* =========================
+   GENERATE CARD
+========================= */
 
 function generateCard(){
 
@@ -87,6 +107,7 @@ currentUser = name;
 
 ctx.clearRect(0,0,800,1000);
 
+/* background */
 const g = ctx.createLinearGradient(0,0,800,1000);
 g.addColorStop(0,"#06120d");
 g.addColorStop(1,"#0f2d18");
@@ -94,43 +115,80 @@ g.addColorStop(1,"#0f2d18");
 ctx.fillStyle = g;
 ctx.fillRect(0,0,800,1000);
 
+/* frame */
 ctx.strokeStyle="#22c55e";
 ctx.lineWidth=10;
 ctx.strokeRect(20,20,760,960);
 
+/* title */
 ctx.fillStyle="#4ade80";
 ctx.font="bold 50px Arial";
 ctx.textAlign="center";
 ctx.fillText("RITUAL NFT",400,120);
 
+/* avatar */
+const img = new Image();
+img.crossOrigin = "anonymous";
+img.src = getAvatar(name);
+
+img.onload = () => {
+
+ctx.save();
+ctx.beginPath();
+ctx.arc(400,300,130,0,Math.PI*2);
+ctx.clip();
+
+ctx.drawImage(img,270,170,260,260);
+
+ctx.restore();
+
+/* text after avatar loads */
 ctx.fillStyle="white";
 ctx.font="40px Arial";
-ctx.fillText("@"+name,400,500);
+ctx.fillText("@"+name,400,520);
 
 ctx.fillStyle="#9ca3af";
 ctx.font="24px Arial";
-ctx.fillText("Genesis Ritual Card",400,560);
+ctx.fillText("Genesis Ritual Card",400,580);
+
+};
+
 }
+
+/* =========================
+   DOWNLOAD
+========================= */
 
 function downloadCard(){
 const a=document.createElement("a");
-a.download=currentUser+"-ritual.png";
+a.download=currentUser+"-nft.png";
 a.href=canvas.toDataURL("image/png");
 a.click();
 }
 
+/* =========================
+   CONNECT WALLET
+========================= */
+
 async function connectWallet(){
 
 if(!window.ethereum){
-alert("Install MetaMask");
+alert("MetaMask not found");
 return;
 }
 
-const accounts = await ethereum.request({ method:"eth_requestAccounts" });
+const accounts = await ethereum.request({
+method:"eth_requestAccounts"
+});
 
 document.getElementById("wallet").innerText =
 "Connected: " + accounts[0];
+
 }
+
+/* =========================
+   MINT NFT
+========================= */
 
 async function mintNFT(){
 
@@ -158,7 +216,7 @@ const image = canvas.toDataURL("image/png");
 
 const metadata = {
 name: "Ritual NFT @"+currentUser,
-description: "Generated Ritual NFT",
+description: "Stable NFT Card",
 image: image
 };
 
@@ -180,6 +238,10 @@ alert("Mint failed — check console");
 }
 
 }
+
+/* =========================
+   INIT
+========================= */
 
 generateCard();
 
