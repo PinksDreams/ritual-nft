@@ -64,23 +64,7 @@ margin-bottom:20px;
 color:#4ade80;
 }
 
-label{
-display:block;
-margin-top:20px;
-margin-bottom:8px;
-}
-
 input{
-width:100%;
-padding:14px;
-border:none;
-border-radius:12px;
-background:#102117;
-color:white;
-font-size:16px;
-}
-
-select{
 width:100%;
 padding:14px;
 border:none;
@@ -101,15 +85,8 @@ font-size:16px;
 font-weight:bold;
 }
 
-.generate-btn{
-background:#22c55e;
-color:white;
-}
-
-.download-btn{
-background:#166534;
-color:white;
-}
+.generate-btn{background:#22c55e;color:white;}
+.download-btn{background:#166534;color:white;}
 
 .preview{
 display:flex;
@@ -121,12 +98,7 @@ canvas{
 width:100%;
 max-width:550px;
 border-radius:20px;
-box-shadow:0 0 30px rgba(34,197,94,.3),0 0 80px rgba(34,197,94,.15);
-}
-
-.avatar-preview{
-text-align:center;
-margin-top:20px;
+box-shadow:0 0 30px rgba(34,197,94,.3);
 }
 
 .avatar-preview img{
@@ -134,7 +106,6 @@ width:100px;
 height:100px;
 border-radius:50%;
 border:3px solid #22c55e;
-object-fit:cover;
 display:none;
 }
 
@@ -161,7 +132,7 @@ color:#6b7280;
 
 <section class="hero">
 <h1>🧬 Ritual NFT Cards</h1>
-<p>Create your Ritual identity card and mint it on-chain</p>
+<p>Create your Ritual NFT and mint it on-chain</p>
 </section>
 
 <div class="container">
@@ -172,12 +143,7 @@ color:#6b7280;
 
 <h2>Create Card</h2>
 
-<label>X Username</label>
 <input id="username" placeholder="@username">
-
-<div class="avatar-preview">
-<img id="avatarPreview">
-</div>
 
 <button class="generate-btn" onclick="generateCard()">Generate Card</button>
 <button class="download-btn" onclick="downloadCard()">Download PNG</button>
@@ -223,29 +189,7 @@ let currentUser = "ritual";
 const canvas = document.getElementById("cardCanvas");
 const ctx = canvas.getContext("2d");
 
-function loadImage(src){
-return new Promise((res,rej)=>{
-const img = new Image();
-img.crossOrigin = "anonymous";
-img.onload = ()=>res(img);
-img.onerror = rej;
-img.src = src;
-});
-}
-
-document.getElementById("username").addEventListener("input",function(){
-const u = this.value.replace("@","").trim();
-const img = document.getElementById("avatarPreview");
-
-if(u){
-img.src = `https://unavatar.io/x/${u}`;
-img.style.display = "block";
-}else{
-img.style.display = "none";
-}
-});
-
-async function generateCard(){
+function generateCard(){
 
 const username = document.getElementById("username").value.replace("@","").trim();
 if(!username){ alert("Enter username"); return; }
@@ -270,22 +214,6 @@ ctx.font="bold 50px Arial";
 ctx.textAlign="center";
 ctx.fillText("RITUAL CARD",400,90);
 
-try{
-const avatar = await loadImage(`https://unavatar.io/x/${username}`);
-ctx.save();
-ctx.beginPath();
-ctx.arc(400,300,130,0,Math.PI*2);
-ctx.clip();
-ctx.drawImage(avatar,270,170,260,260);
-ctx.restore();
-}catch(e){}
-
-ctx.strokeStyle="#4ade80";
-ctx.lineWidth=6;
-ctx.beginPath();
-ctx.arc(400,300,130,0,Math.PI*2);
-ctx.stroke();
-
 ctx.fillStyle="white";
 ctx.font="bold 42px Arial";
 ctx.fillText("@"+username,400,530);
@@ -297,6 +225,7 @@ ctx.fillText("Genesis Collection",400,580);
 ctx.fillStyle="#4ade80";
 ctx.font="24px Arial";
 ctx.fillText("Ritual Explorer",400,650);
+
 }
 
 function downloadCard(){
@@ -316,8 +245,11 @@ return;
 const accounts = await ethereum.request({method:"eth_requestAccounts"});
 const address = accounts[0];
 
-document.getElementById("walletAddress").innerText = "Connected: "+address;
+document.getElementById("walletAddress").innerText =
+"Connected: " + address;
+
 document.getElementById("mintBtn").disabled = false;
+
 }
 
 async function mintNFT(){
@@ -335,14 +267,23 @@ signer
 
 const address = await signer.getAddress();
 
-const tokenURI = "https://example.com/meta.json";
+// временный tokenURI (позже заменим на IPFS)
+const metadata = {
+name: "Ritual NFT Card",
+description: "Generated Ritual Card",
+image: canvas.toDataURL("image/png")
+};
+
+const tokenURI =
+"data:application/json," +
+encodeURIComponent(JSON.stringify(metadata));
 
 const tx = await contract.mint(address, tokenURI);
 
-alert("Minting...");
+alert("Minting NFT...");
 await tx.wait();
 
-alert("NFT minted!");
+alert("NFT minted successfully!");
 
 }catch(e){
 console.error(e);
