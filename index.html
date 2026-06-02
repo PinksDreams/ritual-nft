@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ritual NFT Cards</title>
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
@@ -11,178 +10,80 @@
 body{
 margin:0;
 font-family:Arial;
-background:#05120b;
+background:#07130d;
 color:white;
-}
-
-.hero{
 text-align:center;
-padding:40px;
 }
 
-.hero h1{
-color:#4ade80;
-font-size:44px;
-}
-
-.container{
-max-width:1100px;
-margin:auto;
-padding:20px;
-}
-
-.grid{
-display:grid;
-grid-template-columns:420px 1fr;
-gap:20px;
-}
-
-.panel{
-background:rgba(255,255,255,0.05);
-padding:20px;
-border-radius:16px;
-}
-
-input{
-width:100%;
+input,button{
 padding:12px;
-border:none;
+margin:10px;
 border-radius:10px;
-background:#102117;
-color:white;
+border:none;
+font-size:16px;
 }
 
 button{
-width:100%;
-padding:12px;
-margin-top:10px;
-border:none;
-border-radius:10px;
 cursor:pointer;
-font-weight:bold;
 }
 
-.generate-btn{background:#22c55e;color:white;}
-.download-btn{background:#166534;color:white;}
+.green{
+background:#22c55e;
+color:white;
+}
+
+.dark{
+background:#14532d;
+color:white;
+}
 
 canvas{
-width:100%;
-border-radius:16px;
-box-shadow:0 0 25px rgba(34,197,94,.3);
+margin-top:20px;
+border-radius:20px;
+box-shadow:0 0 30px rgba(34,197,94,.3);
 }
-
-.mint-box{
-margin-top:30px;
-padding:20px;
-border:1px solid rgba(74,222,128,.2);
-border-radius:16px;
-text-align:center;
-}
-
-.avatar{
-width:80px;
-height:80px;
-border-radius:50%;
-margin-top:10px;
-display:none;
-}
-
 </style>
 </head>
 
 <body>
 
-<div class="hero">
 <h1>🧬 Ritual NFT Cards</h1>
-<p>Clean Mint Version</p>
-</div>
-
-<div class="container">
-
-<div class="grid">
-
-<div class="panel">
-
-<h2>Create Card</h2>
 
 <input id="username" placeholder="@username">
 
-<img id="avatar" class="avatar">
+<br>
 
-<button class="generate-btn" onclick="generateCard()">Generate</button>
-<button class="download-btn" onclick="downloadCard()">Download</button>
+<button class="green" onclick="generateCard()">Generate</button>
+<button class="dark" onclick="downloadCard()">Download PNG</button>
 
-</div>
+<br>
 
-<div class="panel">
-<canvas id="canvas" width="800" height="1000"></canvas>
-</div>
+<canvas id="card" width="800" height="1000"></canvas>
 
-</div>
+<br><br>
 
-<div class="mint-box">
+<button class="green" onclick="connectWallet()">Connect Wallet</button>
+<button class="dark" onclick="mintNFT()">Mint NFT</button>
 
-<h2 style="color:#4ade80;">Mint NFT</h2>
-
-<button class="generate-btn" onclick="connectWallet()">Connect Wallet</button>
-
-<div id="wallet"></div>
-
-<button class="download-btn" id="mintBtn" onclick="mintNFT()" disabled>
-Mint NFT
-</button>
-
-</div>
-
-</div>
+<div id="wallet" style="margin-top:10px;"></div>
 
 <script>
-
-/* ======================
-   CONTRACT
-====================== */
 
 const contractAddress = "0xdB8FF15f6D9c7a35F86542a9052608DF7a16FB8a";
 
 const contractABI = [
-"function mint(address to, string tokenURI)"
+  "function mint(address to, string tokenURI)"
 ];
 
 let currentUser = "ritual";
 
-const canvas = document.getElementById("canvas");
+const canvas = document.getElementById("card");
 const ctx = canvas.getContext("2d");
-
-/* ======================
-   AVATAR (SAFE)
-====================== */
-
-function getAvatar(user){
-return `https://api.dicebear.com/7.x/identicon/svg?seed=${user}`;
-}
-
-document.getElementById("username").addEventListener("input", e=>{
-const u = e.target.value.replace("@","").trim();
-
-if(!u){
-document.getElementById("avatar").style.display="none";
-return;
-}
-
-document.getElementById("avatar").src = getAvatar(u);
-document.getElementById("avatar").style.display="block";
-});
-
-/* ======================
-   CARD
-====================== */
 
 function generateCard(){
 
-const username = document.getElementById("username").value.replace("@","").trim();
-if(!username) return alert("Enter username");
-
-currentUser = username;
+const name = document.getElementById("username").value || "unknown";
+currentUser = name;
 
 ctx.clearRect(0,0,800,1000);
 
@@ -194,34 +95,29 @@ ctx.fillStyle = g;
 ctx.fillRect(0,0,800,1000);
 
 ctx.strokeStyle="#22c55e";
-ctx.lineWidth=8;
-ctx.strokeRect(25,25,750,950);
+ctx.lineWidth=10;
+ctx.strokeRect(20,20,760,960);
 
 ctx.fillStyle="#4ade80";
 ctx.font="bold 50px Arial";
 ctx.textAlign="center";
-ctx.fillText("RITUAL CARD",400,90);
+ctx.fillText("RITUAL NFT",400,120);
 
 ctx.fillStyle="white";
-ctx.font="bold 42px Arial";
-ctx.fillText("@"+username,400,530);
+ctx.font="40px Arial";
+ctx.fillText("@"+name,400,500);
 
+ctx.fillStyle="#9ca3af";
+ctx.font="24px Arial";
+ctx.fillText("Genesis Ritual Card",400,560);
 }
-
-/* ======================
-   DOWNLOAD
-====================== */
 
 function downloadCard(){
 const a=document.createElement("a");
-a.download=currentUser+".png";
-a.href=canvas.toDataURL();
+a.download=currentUser+"-ritual.png";
+a.href=canvas.toDataURL("image/png");
 a.click();
 }
-
-/* ======================
-   WALLET
-====================== */
 
 async function connectWallet(){
 
@@ -230,65 +126,61 @@ alert("Install MetaMask");
 return;
 }
 
-const provider = new ethers.providers.Web3Provider(window.ethereum);
-await provider.send("eth_requestAccounts", []);
-const signer = provider.getSigner();
-
-const addr = await signer.getAddress();
+const accounts = await ethereum.request({ method:"eth_requestAccounts" });
 
 document.getElementById("wallet").innerText =
-"Connected: " + addr;
-
-document.getElementById("mintBtn").disabled = false;
+"Connected: " + accounts[0];
 }
 
-/* ======================
-   MINT (NO IPFS)
-====================== */
+async function mintNFT(){
 
-async function mintNFT() {
-  try {
+try{
 
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const signer = await provider.getSigner();
-
-    const contract = new ethers.Contract(
-      contractAddress,
-      contractABI,
-      signer
-    );
-
-    const address = await signer.getAddress();
-
-    // image
-    const image = canvas.toDataURL("image/png");
-
-    // metadata
-    const metadata = {
-      name: `Ritual NFT @${currentUser}`,
-      description: "Ritual NFT Card",
-      image: image
-    };
-
-    // IMPORTANT: safer encoding than btoa
-    const json = JSON.stringify(metadata);
-    const base64 = btoa(unescape(encodeURIComponent(json)));
-
-    const tokenURI = `data:application/json;base64,${base64}`;
-
-    console.log("Minting with:", tokenURI);
-
-    const tx = await contract.mint(address, tokenURI);
-
-    await tx.wait();
-
-    alert("Mint SUCCESS!");
-
-  } catch (e) {
-    console.error("Mint error:", e);
-    alert("Mint failed — check console");
-  }
+if(!window.ethereum){
+alert("MetaMask not found");
+return;
 }
+
+await ethereum.request({ method:"eth_requestAccounts" });
+
+const provider = new ethers.providers.Web3Provider(window.ethereum);
+const signer = provider.getSigner();
+
+const contract = new ethers.Contract(
+contractAddress,
+contractABI,
+signer
+);
+
+const address = await signer.getAddress();
+
+const image = canvas.toDataURL("image/png");
+
+const metadata = {
+name: "Ritual NFT @"+currentUser,
+description: "Generated Ritual NFT",
+image: image
+};
+
+const tokenURI =
+"data:application/json;base64," +
+btoa(JSON.stringify(metadata));
+
+console.log("Minting...");
+
+const tx = await contract.mint(address, tokenURI);
+
+await tx.wait();
+
+alert("Mint SUCCESS!");
+
+}catch(e){
+console.error(e);
+alert("Mint failed — check console");
+}
+
+}
+
 generateCard();
 
 </script>
