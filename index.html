@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ritual NFT Cards</title>
 
-<script src="https://cdn.jsdelivr.net/npm/ethers@6.9.0/dist/ethers.min.js"></script>
+<!-- ✔ Ethers v5 (СТАБИЛЬНЫЙ) -->
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -141,9 +142,10 @@ Ritual Genesis Collection
 
 <script>
 
-/* 🔑 ВСТАВЬ СЮДА КЛЮЧ */
+/* 🔑 ВСТАВЬ КЛЮЧ ТУТ */
 const NFT_STORAGE_KEY = "da4d2e64.5ed1c89d39c94c9dbed75c5bbe371988";
 
+/* CONTRACT */
 const contractAddress = "0xdB8FF15f6D9c7a35F86542a9052608DF7a16FB8a";
 
 const contractABI = [
@@ -155,9 +157,9 @@ let currentUser = "ritual";
 const canvas = document.getElementById("cardCanvas");
 const ctx = canvas.getContext("2d");
 
-/* ===================== */
-/* CARD */
-/* ===================== */
+/* =====================
+   CARD
+===================== */
 
 function generateCard(){
 
@@ -195,6 +197,7 @@ ctx.fillText("Genesis Collection",400,580);
 ctx.fillStyle="#4ade80";
 ctx.font="24px Arial";
 ctx.fillText("Ritual Explorer",400,650);
+
 }
 
 function downloadCard(){
@@ -204,9 +207,9 @@ a.href=canvas.toDataURL();
 a.click();
 }
 
-/* ===================== */
-/* WALLET */
-/* ===================== */
+/* =====================
+   WALLET
+===================== */
 
 async function connectWallet(){
 
@@ -215,8 +218,11 @@ alert("Install MetaMask");
 return;
 }
 
-const accounts = await ethereum.request({method:"eth_requestAccounts"});
-const address = accounts[0];
+const provider = new ethers.providers.Web3Provider(window.ethereum);
+await provider.send("eth_requestAccounts", []);
+const signer = provider.getSigner();
+
+const address = await signer.getAddress();
 
 document.getElementById("walletAddress").innerText =
 "Connected: " + address;
@@ -224,9 +230,9 @@ document.getElementById("walletAddress").innerText =
 document.getElementById("mintBtn").disabled = false;
 }
 
-/* ===================== */
-/* IPFS */
-/* ===================== */
+/* =====================
+   IPFS
+===================== */
 
 function canvasToBlob(){
 return new Promise(res=>{
@@ -253,9 +259,9 @@ throw new Error("IPFS upload failed");
 return data.value.cid;
 }
 
-/* ===================== */
-/* MINT */
-/* ===================== */
+/* =====================
+   MINT
+===================== */
 
 async function mintNFT(){
 
@@ -266,8 +272,8 @@ alert("Install MetaMask");
 return;
 }
 
-const provider = new ethers.BrowserProvider(window.ethereum);
-const signer = await provider.getSigner();
+const provider = new ethers.providers.Web3Provider(window.ethereum);
+const signer = provider.getSigner();
 
 const contract = new ethers.Contract(
 contractAddress,
@@ -281,7 +287,6 @@ alert("Uploading image...");
 
 const imgBlob = await canvasToBlob();
 const imageCID = await uploadToIPFS(imgBlob);
-
 const imageURL = `https://ipfs.io/ipfs/${imageCID}`;
 
 const metadata = {
@@ -304,12 +309,12 @@ alert("Minting...");
 const tx = await contract.mint(address, tokenURI);
 await tx.wait();
 
-alert("Mint successful!");
+alert("Mint SUCCESS!");
 
 }catch(e){
 
 console.error(e);
-alert("Mint failed — open console");
+alert("Mint failed — check console");
 
 }
 
