@@ -321,9 +321,105 @@ async function mintNFT(){
 
 try{
 
+console.log("=== MINT START ===");
+
 if(!window.ethereum){
-alert("MetaMask required");
+alert("MetaMask not found");
 return;
+}
+
+const provider = new ethers.BrowserProvider(window.ethereum);
+const signer = await provider.getSigner();
+
+const contract = new ethers.Contract(
+contractAddress,
+contractABI,
+signer
+);
+
+const address = await signer.getAddress();
+
+console.log("Wallet:", address);
+
+/* 1. IMAGE → IPFS */
+alert("Uploading image to IPFS...");
+
+const imgBlob = await new Promise(res=>{
+canvas.toBlob(res,"image/png");
+});
+
+const imageRes = await fetch("https://api.nft.storage/upload", {
+method:"POST",
+headers:{
+Authorization:`Bearer ${NFT_STORAGE_KEY}`
+},
+body: imgBlob
+});
+
+const imageData = await imageRes.json();
+
+console.log("IMAGE RESPONSE:", imageData);
+
+if(!imageData.ok){
+throw new Error("Image upload failed");
+}
+
+const imageURL = `https://ipfs.io/ipfs/${imageData.value.cid}`;
+
+/* 2. METADATA */
+alert("Uploading metadata...");
+
+const metadata = {
+name:`Ritual NFT - @${currentUser}`,
+description:"Ritual Genesis Card",
+image:imageURL,
+attributes:[
+{trait_type:"Type",value:"Genesis"},
+{trait_type:"Network",value:"Ritual Testnet"}
+]
+};
+
+const metaRes = await fetch("https://api.nft.storage/upload", {
+method:"POST",
+headers:{
+Authorization:`Bearer ${NFT_STORAGE_KEY}`
+},
+body: new Blob([JSON.stringify(metadata)],{
+type:"application/json"
+})
+});
+
+const metaData = await metaRes.json();
+
+console.log("METADATA RESPONSE:", metaData);
+
+if(!metaData.ok){
+throw new Error("Metadata upload failed");
+}
+
+const tokenURI = `https://ipfs.io/ipfs/${metaData.value.cid}`;
+
+console.log("TOKEN URI:", tokenURI);
+
+/* 3. MINT */
+alert("Minting NFT...");
+
+const tx = await contract.mint(address, tokenURI);
+
+console.log("TX SENT:", tx);
+
+await tx.wait();
+
+alert("NFT minted successfully!");
+
+console.log("=== MINT SUCCESS ===");
+
+}catch(e){
+
+console.error("MINT ERROR:", e);
+alert("Mint failed — open console (Cmd + Option + J)");
+
+}
 }
 
 const provider = new ethers.BrowserProvider(window.ethereum);
