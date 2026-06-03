@@ -50,10 +50,24 @@ button{cursor:pointer}
 .green{background:#22c55e;color:white;}
 .dark{background:#14532d;color:white;}
 
+.card-wrapper{
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+/* NFT CARD STYLE */
 canvas{
-margin-top:20px;
-border-radius:20px;
-box-shadow:0 0 30px rgba(34,197,94,.3);
+  border-radius: 24px;
+
+  border: 2px solid rgba(182,255,92,0.7);
+
+  box-shadow:
+    0 0 10px rgba(182,255,92,0.4),
+    0 0 25px rgba(124,255,58,0.3),
+    0 0 60px rgba(57,255,20,0.2);
+
+  background: #000;
 }
 </style>
   
@@ -74,8 +88,9 @@ box-shadow:0 0 30px rgba(34,197,94,.3);
 
 <br>
 
-<canvas id="card" width="800" height="1000"></canvas>
-
+<div class="card-wrapper">
+  <canvas id="card" width="600" height="750"></canvas>
+</div>
 <br>
 
 <button class="green" onclick="connectWallet()">Connect Wallet</button>
