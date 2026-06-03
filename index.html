@@ -181,10 +181,9 @@ bgImg.crossOrigin = "anonymous";
 
 bgImg.onload = () => {
 
-  // background
   ctx.drawImage(bgImg, 0, 0, 600, 750);
 
-  // soft dark overlay (depth)
+  // overlay for contrast
   const gradient = ctx.createLinearGradient(0,0,0,750);
   gradient.addColorStop(0, "rgba(0,0,0,0.25)");
   gradient.addColorStop(1, "rgba(0,0,0,0.75)");
@@ -197,61 +196,54 @@ bgImg.onload = () => {
 
   avatarImg.onload = () => {
 
-    /* ===== AVATAR GLOW ===== */
+    /* ===== AVATAR (LARGER + BETTER FOCUS) ===== */
 
-    const size = 340;
+    const size = 420; // 🔥 увеличили (было ~340)
     const x = (600 - size) / 2;
-    const y = 70;
+    const y = 60; // чуть выше для баланса
 
     // glow behind avatar
     ctx.beginPath();
-    ctx.arc(300, 240, 190, 0, Math.PI * 2);
-    ctx.fillStyle = "rgba(182,255,92,0.15)";
+    ctx.arc(300, 240, 210, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(182,255,92,0.18)";
     ctx.fill();
 
     ctx.beginPath();
-    ctx.arc(300, 240, 140, 0, Math.PI * 2);
+    ctx.arc(300, 240, 160, 0, Math.PI * 2);
     ctx.fillStyle = "rgba(182,255,92,0.10)";
     ctx.fill();
 
     // avatar
     ctx.drawImage(avatarImg, x, y, size, size);
 
-    /* ===== GLASS CARD PANEL ===== */
+    /* ===== GLASS PANEL ===== */
 
     ctx.fillStyle = "rgba(0,0,0,0.45)";
     ctx.beginPath();
-    ctx.roundRect(40, 500, 520, 200, 24);
+    ctx.roundRect(40, 520, 520, 190, 24);
     ctx.fill();
 
-    // neon border
     ctx.strokeStyle = "rgba(182,255,92,0.6)";
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.roundRect(40, 500, 520, 200, 24);
+    ctx.roundRect(40, 520, 520, 190, 24);
     ctx.stroke();
 
     /* ===== TEXT ===== */
 
     ctx.textAlign = "center";
 
-    // username (bold premium)
+    // username
     ctx.fillStyle = "#ffffff";
     ctx.font = "bold 38px Arial";
-    ctx.fillText("@" + username, 300, 580);
+    ctx.fillText("@" + username, 300, 600);
 
-    // subtitle
+    // collection name
     ctx.fillStyle = "#b6ff5c";
     ctx.font = "20px Arial";
-    ctx.fillText("RITUAL GENESIS COLLECTION", 300, 620);
+    ctx.fillText("RITUAL GENESIS COLLECTION", 300, 645);
 
-    // rarity tag (fake NFT vibe)
-    const rarity = ["COMMON","RARE","EPIC","MYTHIC"];
-    const pick = rarity[Math.abs(hash) % rarity.length];
-
-    ctx.fillStyle = "rgba(182,255,92,0.9)";
-    ctx.font = "bold 18px Arial";
-    ctx.fillText("RANK: " + pick, 300, 660);
+    // ❌ RANK УДАЛЁН
 
   };
 
