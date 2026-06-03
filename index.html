@@ -26,7 +26,15 @@ text-shadow:
 0 0 40px #22c55e,
 0 0 80px #22c55e;
 }
-
+.logo{
+position: fixed;
+top: 20px;
+right: 20px;
+width: 80px;
+height: 80px;
+object-fit: contain;
+z-index: 9999;
+}
 input,button{
 padding:12px;
 margin:10px;
@@ -46,9 +54,12 @@ border-radius:20px;
 box-shadow:0 0 30px rgba(34,197,94,.3);
 }
 </style>
+  
 </head>
 
 <body>
+
+<img src="logo.png" class="logo">
    
 <h1 class="title">Ritual NFT Cards</h1>
 
