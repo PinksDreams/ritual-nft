@@ -333,18 +333,10 @@ async function mintNFT() {
 
     console.log("STEP 3: build metadata");
 
-    const image =
-      canvas.toDataURL("image/png");
-
-    console.log(
-      "IMAGE LENGTH:",
-      image.length
-    );
-
     const metadata = {
-  name: "Ritual NFT @" + currentUser,
-  description: "Ritual NFT Card"
-};
+      name: "Ritual NFT @" + currentUser,
+      description: "Ritual NFT Card"
+    };
 
     const tokenURI =
       "data:application/json;base64," +
@@ -354,17 +346,6 @@ async function mintNFT() {
       "TOKENURI LENGTH:",
       tokenURI.length
     );
-
-    // предупреждение если данные огромные
-    if (tokenURI.length > 100000) {
-
-      alert(
-        "TokenURI is extremely large (" +
-        tokenURI.length +
-        " chars). RPC may reject this transaction."
-      );
-
-    }
 
     console.log("STEP 4: sending tx");
 
@@ -395,7 +376,9 @@ async function mintNFT() {
       receipt
     );
 
-    alert("Mint SUCCESS!");
+    alert(
+      "NFT Minted Successfully!"
+    );
 
   } catch (e) {
 
