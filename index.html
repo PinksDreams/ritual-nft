@@ -316,15 +316,13 @@ console.log("Minting...");
 
 let tx;
 
-// ⚠️ иногда estimateGas ломает RPC → bypass
-try {
-  tx = await contract.mint(address, tokenURI, {
-    gasLimit: 500000
-  });
-} catch (gasError) {
-  console.log("Gas fallback triggered");
-  tx = await contract.mint(address, tokenURI);
-}
+let tx;
+
+const gasEstimate = await contract.estimateGas.mint(address, tokenURI);
+
+tx = await contract.mint(address, tokenURI, {
+  gasLimit: gasEstimate
+});
 
 await tx.wait();
 
