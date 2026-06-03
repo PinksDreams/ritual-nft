@@ -300,25 +300,25 @@ async function mintNFT() {
       return;
     }
 
-    // 👉 open wallet
+    console.log("STEP 1: connect wallet");
+
     await ethereum.request({ method: "eth_requestAccounts" });
 
-    // 👉 detect network
     const chainId = await ethereum.request({ method: "eth_chainId" });
 
     console.log("Chain:", chainId);
 
-    // 🔥 YOUR RITUAL TESTNET CHAIN ID
+    // 🔥 Ritual testnet chain
     if (chainId !== "0x7bb") {
       alert("Wrong network! Switch to Ritual testnet");
       return;
     }
 
-    // 👉 ethers v6 provider
+    console.log("STEP 2: setup signer");
+
     const provider = new ethers.BrowserProvider(window.ethereum);
     const signer = await provider.getSigner();
 
-    // 👉 contract
     const contract = new ethers.Contract(
       contractAddress,
       contractABI,
@@ -327,36 +327,51 @@ async function mintNFT() {
 
     const address = await signer.getAddress();
 
-    // 👉 image from canvas
+    console.log("STEP 3: build metadata");
+
     const image = canvas.toDataURL("image/png");
 
-    // 👉 metadata
     const metadata = {
       name: "Ritual NFT @" + currentUser,
       description: "Ritual NFT Card",
-      image: image
+      image
     };
 
     const tokenURI =
       "data:application/json;base64," +
       btoa(JSON.stringify(metadata));
 
-    console.log("Minting...");
+    console.log("STEP 4: sending tx");
 
-    // 👉 mint tx
-    const tx = await contract.mint(address, tokenURI);
+    // 🚀 IMPORTANT: NO estimateGas, NO async RPC calls
+    const tx = await contract.mint(address, tokenURI, {
+      gasLimit: 700000 // slightly higher = avoids underestimation
+    });
 
-    await tx.wait();
+    console.log("TX SENT:", tx.hash);
+
+    // 🔥 optional safety timeout watcher
+    const receipt = await Promise.race([
+      tx.wait(),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("TX timeout")), 60000)
+      )
+    ]);
+
+    console.log("RECEIPT:", receipt);
 
     alert("Mint SUCCESS!");
 
   } catch (e) {
-    console.error(e);
-    alert("Mint failed — check console");
+    console.error("MINT ERROR:", e);
+
+    if (e.message.includes("timeout")) {
+      alert("Transaction is slow. Check MetaMask Activity.");
+    } else {
+      alert("Mint failed — check console");
+    }
   }
-
 }
-
 /* =========================
    INIT
 ========================= */
