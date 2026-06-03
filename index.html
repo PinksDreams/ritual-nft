@@ -316,12 +316,17 @@ console.log("Minting...");
 
 let tx;
 
-let tx;
+let gasLimit;
 
-const gasEstimate = await contract.estimateGas.mint(address, tokenURI);
+try {
+  gasLimit = await contract.estimateGas.mint(address, tokenURI);
+} catch (e) {
+  console.log("Gas estimation failed, using fallback");
+  gasLimit = 600000;
+}
 
 tx = await contract.mint(address, tokenURI, {
-  gasLimit: gasEstimate
+  gasLimit
 });
 
 await tx.wait();
