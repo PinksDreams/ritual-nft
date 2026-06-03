@@ -306,7 +306,7 @@ const chainId = await ethereum.request({ method: "eth_chainId" });
 
 console.log("Chain:", chainId);
 
-if (chainId !== "0x...") {
+if (chainId !== "0x7a69") { // замени на свой
   alert("Wrong network!");
   return;
 }
@@ -315,9 +315,9 @@ const provider = new ethers.BrowserProvider(window.ethereum);
 const signer = await provider.getSigner();
 
 const contract = new ethers.Contract(
-contractAddress,
-contractABI,
-signer
+  contractAddress,
+  contractABI,
+  signer
 );
 
 const address = await signer.getAddress();
@@ -325,30 +325,19 @@ const address = await signer.getAddress();
 const image = canvas.toDataURL("image/png");
 
 const metadata = {
-name: "Ritual NFT @"+currentUser,
-description: "Ritual NFT Card",
-image: image
+  name: "Ritual NFT @" + currentUser,
+  description: "Ritual NFT Card",
+  image
 };
 
 const tokenURI =
-"data:application/json;base64," +
-btoa(JSON.stringify(metadata));
+  "data:application/json;base64," +
+  btoa(JSON.stringify(metadata));
 
 console.log("Minting...");
 
-let tx;
-
-let gasLimit;
-
-try {
-  gasLimit = await contract.estimateGas.mint(address, tokenURI);
-} catch (e) {
-  console.log("Gas estimation failed, using fallback");
-  gasLimit = 600000;
-}
-
-tx = await contract.mint(address, tokenURI, {
-  gasLimit
+const tx = await contract.mint(address, tokenURI, {
+  gasLimit: 600000
 });
 
 await tx.wait();
