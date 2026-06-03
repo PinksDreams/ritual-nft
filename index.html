@@ -291,63 +291,71 @@ document.getElementById("wallet").innerText =
    MINT (SAFE VERSION)
 ========================= */
 
-async function mintNFT(){
+async function mintNFT() {
 
-try{
+  try {
 
-if(!window.ethereum){
-alert("MetaMask not found");
-return;
-}
+    if (!window.ethereum) {
+      alert("MetaMask not found");
+      return;
+    }
 
-await ethereum.request({ method:"eth_requestAccounts" });
+    // 👉 open wallet
+    await ethereum.request({ method: "eth_requestAccounts" });
 
-const chainId = await ethereum.request({ method: "eth_chainId" });
+    // 👉 detect network
+    const chainId = await ethereum.request({ method: "eth_chainId" });
 
-console.log("Chain:", chainId);
+    console.log("Chain:", chainId);
 
-if (chainId !== "0x7a69") { // замени на свой
-  alert("Wrong network!");
-  return;
-}
+    // 🔥 YOUR RITUAL TESTNET CHAIN ID
+    if (chainId !== "0x7bb") {
+      alert("Wrong network! Switch to Ritual testnet");
+      return;
+    }
 
-const provider = new ethers.BrowserProvider(window.ethereum);
-const signer = await provider.getSigner();
+    // 👉 ethers v6 provider
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const signer = await provider.getSigner();
 
-const contract = new ethers.Contract(
-  contractAddress,
-  contractABI,
-  signer
-);
+    // 👉 contract
+    const contract = new ethers.Contract(
+      contractAddress,
+      contractABI,
+      signer
+    );
 
-const address = await signer.getAddress();
+    const address = await signer.getAddress();
 
-const image = canvas.toDataURL("image/png");
+    // 👉 image from canvas
+    const image = canvas.toDataURL("image/png");
 
-const metadata = {
-  name: "Ritual NFT @" + currentUser,
-  description: "Ritual NFT Card",
-  image
-};
+    // 👉 metadata
+    const metadata = {
+      name: "Ritual NFT @" + currentUser,
+      description: "Ritual NFT Card",
+      image: image
+    };
 
-const tokenURI =
-  "data:application/json;base64," +
-  btoa(JSON.stringify(metadata));
+    const tokenURI =
+      "data:application/json;base64," +
+      btoa(JSON.stringify(metadata));
 
-console.log("Minting...");
+    console.log("Minting...");
 
-const tx = await contract.mint(address, tokenURI, {
-  gasLimit: 600000
-});
+    // 👉 mint tx
+    const tx = await contract.mint(address, tokenURI, {
+      gasLimit: 600000
+    });
 
-await tx.wait();
+    await tx.wait();
 
-alert("Mint SUCCESS!");
+    alert("Mint SUCCESS!");
 
-}catch(e){
-console.error(e);
-alert("Mint failed — check console");
-}
+  } catch (e) {
+    console.error(e);
+    alert("Mint failed — check console");
+  }
 
 }
 
