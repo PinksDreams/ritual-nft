@@ -315,82 +315,68 @@ async function mintNFT() {
 
     console.log("STEP 2: setup signer");
 
-    const provider =
-      new ethers.BrowserProvider(window.ethereum);
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const signer = await provider.getSigner();
 
-    const signer =
-      await provider.getSigner();
+    const contract = new ethers.Contract(
+      contractAddress,
+      contractABI,
+      signer
+    );
 
-    const contract =
-      new ethers.Contract(
-        contractAddress,
-        contractABI,
-        signer
-      );
-
-    const address =
-      await signer.getAddress();
+    const address = await signer.getAddress();
 
     console.log("STEP 3: build metadata");
 
+    // 👉 стабильный выбор аватара (18 штук)
+    const hash = Math.abs(
+      currentUser
+        .split("")
+        .reduce((a, c) => a + c.charCodeAt(0), 0)
+    );
+
+    const avatarIndex = (hash % 18) + 1;
+
+    const imageUrl =
+      `https://pinksdreams.github.io/ritual-nft/avatars/avatar${avatarIndex}.png`;
+
     const metadata = {
       name: "Ritual NFT @" + currentUser,
-      description: "Ritual NFT Card"
+      description: "Ritual NFT Card",
+      image: imageUrl
     };
 
     const tokenURI =
       "data:application/json;base64," +
       btoa(JSON.stringify(metadata));
 
-    console.log(
-      "TOKENURI LENGTH:",
-      tokenURI.length
-    );
+    console.log("TOKENURI LENGTH:", tokenURI.length);
 
     console.log("STEP 4: sending tx");
 
-    const tx =
-      await contract.mint(
-        address,
-        tokenURI,
-        {
-          gasLimit: 700000
-        }
-      );
-
-    console.log(
-      "TX HASH:",
-      tx.hash
+    const tx = await contract.mint(
+      address,
+      tokenURI,
+      {
+        gasLimit: 700000
+      }
     );
 
-    alert(
-      "Transaction sent!\n\n" +
-      tx.hash
-    );
+    console.log("TX HASH:", tx.hash);
 
-    const receipt =
-      await tx.wait();
+    alert("Transaction sent!\n\n" + tx.hash);
 
-    console.log(
-      "RECEIPT:",
-      receipt
-    );
+    const receipt = await tx.wait();
 
-    alert(
-      "NFT Minted Successfully!"
-    );
+    console.log("RECEIPT:", receipt);
+
+    alert("Mint SUCCESS!");
 
   } catch (e) {
 
-    console.error(
-      "MINT ERROR:",
-      e
-    );
+    console.error("MINT ERROR:", e);
 
-    alert(
-      e?.message ||
-      "Mint failed"
-    );
+    alert(e?.message || "Mint failed");
 
   }
 
