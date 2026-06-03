@@ -344,9 +344,7 @@ async function mintNFT() {
     console.log("Minting...");
 
     // 👉 mint tx
-    const tx = await contract.mint(address, tokenURI, {
-      gasLimit: 600000
-    });
+    const tx = await contract.mint(address, tokenURI);
 
     await tx.wait();
 
