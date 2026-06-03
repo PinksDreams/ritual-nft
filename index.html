@@ -284,9 +284,9 @@ document.getElementById("wallet").innerText =
 }
 
 /* =========================
-   MINT (SAFE VERSION)
+   MINT (DEBUG VERSION)
 ========================= */
-  
+
 async function mintNFT() {
 
   try {
@@ -298,13 +298,16 @@ async function mintNFT() {
 
     console.log("STEP 1: connect wallet");
 
-    await ethereum.request({ method: "eth_requestAccounts" });
+    await ethereum.request({
+      method: "eth_requestAccounts"
+    });
 
-    const chainId = await ethereum.request({ method: "eth_chainId" });
+    const chainId = await ethereum.request({
+      method: "eth_chainId"
+    });
 
     console.log("Chain:", chainId);
 
-    // 🔥 Ritual testnet chain
     if (chainId !== "0x7bb") {
       alert("Wrong network! Switch to Ritual testnet");
       return;
@@ -312,63 +315,103 @@ async function mintNFT() {
 
     console.log("STEP 2: setup signer");
 
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const signer = await provider.getSigner();
+    const provider =
+      new ethers.BrowserProvider(window.ethereum);
 
-    const contract = new ethers.Contract(
-      contractAddress,
-      contractABI,
-      signer
-    );
+    const signer =
+      await provider.getSigner();
 
-    const address = await signer.getAddress();
+    const contract =
+      new ethers.Contract(
+        contractAddress,
+        contractABI,
+        signer
+      );
+
+    const address =
+      await signer.getAddress();
 
     console.log("STEP 3: build metadata");
 
-    const image = canvas.toDataURL("image/png");
+    const image =
+      canvas.toDataURL("image/png");
+
+    console.log(
+      "IMAGE LENGTH:",
+      image.length
+    );
 
     const metadata = {
       name: "Ritual NFT @" + currentUser,
       description: "Ritual NFT Card",
-      image
+      image: image
     };
 
     const tokenURI =
       "data:application/json;base64," +
       btoa(JSON.stringify(metadata));
 
+    console.log(
+      "TOKENURI LENGTH:",
+      tokenURI.length
+    );
+
+    // предупреждение если данные огромные
+    if (tokenURI.length > 100000) {
+
+      alert(
+        "TokenURI is extremely large (" +
+        tokenURI.length +
+        " chars). RPC may reject this transaction."
+      );
+
+    }
+
     console.log("STEP 4: sending tx");
 
-    console.log(tokenURI.length);
+    const tx =
+      await contract.mint(
+        address,
+        tokenURI,
+        {
+          gasLimit: 700000
+        }
+      );
 
-    // 🚀 IMPORTANT: NO estimateGas, NO async RPC calls
-    const tx = await contract.mint(address, tokenURI, {
-      gasLimit: 700000 // slightly higher = avoids underestimation
-    });
+    console.log(
+      "TX HASH:",
+      tx.hash
+    );
 
-    console.log("TX SENT:", tx.hash);
+    alert(
+      "Transaction sent!\n\n" +
+      tx.hash
+    );
 
-    // 🔥 optional safety timeout watcher
-    const receipt = await Promise.race([
-      tx.wait(),
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("TX timeout")), 60000)
-      )
-    ]);
+    const receipt =
+      await tx.wait();
 
-    console.log("RECEIPT:", receipt);
+    console.log(
+      "RECEIPT:",
+      receipt
+    );
 
     alert("Mint SUCCESS!");
 
   } catch (e) {
-    console.error("MINT ERROR:", e);
 
-    if (e.message.includes("timeout")) {
-      alert("Transaction is slow. Check MetaMask Activity.");
-    } else {
-      alert("Mint failed — check console");
-    }
+    console.error(
+      "MINT ERROR:",
+      e
+    );
+
+    alert(
+      e?.message ||
+      "Mint failed"
+    );
+
   }
+
 }
 /* =========================
    INIT
