@@ -286,7 +286,6 @@ document.getElementById("wallet").innerText =
 /* =========================
    MINT (SAFE VERSION)
 ========================= */
-console.log(tokenURI.length);
   
 async function mintNFT() {
 
@@ -339,6 +338,8 @@ async function mintNFT() {
       btoa(JSON.stringify(metadata));
 
     console.log("STEP 4: sending tx");
+
+    console.log(tokenURI.length);
 
     // 🚀 IMPORTANT: NO estimateGas, NO async RPC calls
     const tx = await contract.mint(address, tokenURI, {
