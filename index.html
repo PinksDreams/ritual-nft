@@ -459,7 +459,9 @@ await loadGallery();
       document.getElementById("gallery");
 
     gallery.innerHTML = "";
-
+    
+const shownNames = new Set();
+    
     for(let i=1;i<=total;i++){
 
       try{
@@ -482,6 +484,15 @@ await loadGallery();
             )
           );
 
+const nftName =
+  metadata.name || ("NFT #" + i);
+
+if (shownNames.has(nftName)) {
+  continue;
+}
+
+shownNames.add(nftName);
+        
         const imageUrl =
   metadata.image ||
   "https://pinksdreams.github.io/ritual-nft/logo.png";
