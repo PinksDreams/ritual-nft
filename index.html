@@ -482,12 +482,24 @@ await loadGallery();
             )
           );
 
-        if(!metadata.image)
-          continue;
+        const imageUrl =
+  metadata.image ||
+  "https://pinksdreams.github.io/ritual-nft/logo.png";
 
         const card =
           document.createElement("div");
 
+        card.style.cursor = "pointer";
+
+card.onclick = () => {
+
+  alert(
+    "NFT #" + i +
+    "\n" +
+    (metadata.name || "")
+  );
+
+}; 
         card.style.background =
           "#0d1f14";
 
@@ -507,7 +519,7 @@ await loadGallery();
           document.createElement("img");
 
         img.src =
-          metadata.image;
+  imageUrl;
 
         img.style.width =
           "160px";
@@ -524,6 +536,18 @@ await loadGallery();
         const name =
           document.createElement("div");
 
+const id =
+  document.createElement("div");
+
+id.innerText =
+  "#" + i;
+
+id.style.color =
+  "#4ade80";
+
+id.style.marginTop =
+  "6px";
+        
         name.innerText =
           metadata.name || ("NFT #" + i);
 
@@ -536,6 +560,7 @@ await loadGallery();
         card.appendChild(img);
         card.appendChild(name);
 
+        card.appendChild(id);
         gallery.appendChild(card);
 
       }catch(err){
