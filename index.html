@@ -98,6 +98,30 @@ canvas{
 
 <div id="wallet"></div>
 
+<h2 style="color:#b6ff5c;">
+NFT Collection
+</h2>
+
+<div id="supply"
+style="
+margin-top:20px;
+font-size:24px;
+font-weight:bold;
+color:#b6ff5c;
+">
+Loading supply...
+</div>
+
+<div id="gallery"
+style="
+display:grid;
+grid-template-columns:repeat(auto-fill,180px);
+gap:15px;
+justify-content:center;
+margin-top:30px;
+padding-bottom:50px;
+">
+</div>
 <script>
 
 /* =========================
@@ -107,7 +131,9 @@ canvas{
 const contractAddress = "0x280834daDF2f6406F86F91d415B418931aFA6AD9";
 
 const contractABI = [
-  "function mint(address to, string tokenURI)"
+  "function mint(address to, string tokenURI)",
+  "function tokenId() view returns (uint256)",
+  "function tokenURI(uint256) view returns (string)"
 ];
 
 /* =========================
@@ -371,7 +397,8 @@ async function mintNFT() {
     console.log("RECEIPT:", receipt);
 
     alert("Mint SUCCESS!");
-
+await loadSupply();
+await loadGallery();
   } catch (e) {
 
     console.error("MINT ERROR:", e);
@@ -381,11 +408,171 @@ async function mintNFT() {
   }
 
 }
+  async function loadSupply() {
+
+  try {
+
+    const provider =
+      new ethers.BrowserProvider(window.ethereum);
+
+    const contract =
+      new ethers.Contract(
+        contractAddress,
+        contractABI,
+        provider
+      );
+
+    const total =
+      await contract.tokenId();
+
+    document.getElementById("supply").innerText =
+      "Total NFTs Minted: " + total;
+
+  } catch(e) {
+
+    console.error(e);
+
+    document.getElementById("supply").innerText =
+      "Cannot load supply";
+
+  }
+
+}
+  async function loadGallery() {
+
+  try {
+
+    const provider =
+      new ethers.BrowserProvider(window.ethereum);
+
+    const contract =
+      new ethers.Contract(
+        contractAddress,
+        contractABI,
+        provider
+      );
+
+    const total =
+      Number(await contract.tokenId());
+
+    const gallery =
+      document.getElementById("gallery");
+
+    gallery.innerHTML = "";
+
+    for(let i=1;i<=total;i++){
+
+      try{
+
+        const uri =
+          await contract.tokenURI(i);
+
+        if(
+          !uri.startsWith(
+            "data:application/json;base64,"
+          )
+        ){
+          continue;
+        }
+
+        const metadata =
+          JSON.parse(
+            atob(
+              uri.split(",")[1]
+            )
+          );
+
+        if(!metadata.image)
+          continue;
+
+        const card =
+          document.createElement("div");
+
+        card.style.background =
+          "#0d1f14";
+
+        card.style.border =
+          "1px solid #4ade80";
+
+        card.style.borderRadius =
+          "16px";
+
+        card.style.padding =
+          "10px";
+
+        card.style.boxShadow =
+          "0 0 15px rgba(74,222,128,.25)";
+
+        const img =
+          document.createElement("img");
+
+        img.src =
+          metadata.image;
+
+        img.style.width =
+          "160px";
+
+        img.style.height =
+          "160px";
+
+        img.style.objectFit =
+          "cover";
+
+        img.style.borderRadius =
+          "12px";
+
+        const name =
+          document.createElement("div");
+
+        name.innerText =
+          metadata.name || ("NFT #" + i);
+
+        name.style.marginTop =
+          "8px";
+
+        name.style.color =
+          "#b6ff5c";
+
+        card.appendChild(img);
+        card.appendChild(name);
+
+        gallery.appendChild(card);
+
+      }catch(err){
+
+        console.log(
+          "NFT",
+          i,
+          "error",
+          err
+        );
+
+      }
+
+    }
+
+  } catch(e) {
+
+    console.error(
+      "Gallery error",
+      e
+    );
+
+  }
+
+}
 /* =========================
    INIT
 ========================= */
 
 generateCard();
+
+setTimeout(() => {
+
+  loadSupply();
+  loadGallery();
+
+}, 1000);
 
 </script>
 
