@@ -464,173 +464,194 @@ await loadGallery();
   };
 
 }
+  function renderMiniCard(canvas, username, bgUrl, avatarUrl, tokenId) {
+
+  const ctx = canvas.getContext("2d");
+
+  canvas.width = 180;
+  canvas.height = 230;
+
+  ctx.clearRect(0, 0, 180, 230);
+
+  const bg = new Image();
+  bg.crossOrigin = "anonymous";
+
+  bg.onload = () => {
+
+    // background
+    ctx.drawImage(bg, 0, 0, 180, 230);
+
+    // dark overlay
+    const gradient = ctx.createLinearGradient(0, 0, 0, 230);
+    gradient.addColorStop(0, "rgba(0,0,0,0.2)");
+    gradient.addColorStop(1, "rgba(0,0,0,0.75)");
+
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, 180, 230);
+
+    const avatar = new Image();
+    avatar.crossOrigin = "anonymous";
+
+    avatar.onload = () => {
+
+      // avatar
+      const size = 90;
+      ctx.drawImage(avatar, 45, 25, size, size);
+
+      // username
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 14px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("@" + username, 90, 145);
+
+      // collection
+      ctx.fillStyle = "#b6ff5c";
+      ctx.font = "10px Arial";
+      ctx.fillText("RITUAL GENESIS", 90, 165);
+
+      // token id
+      ctx.fillStyle = "#b6ff5c";
+      ctx.font = "10px Arial";
+      ctx.fillText("#" + tokenId, 155, 18);
+
+    };
+
+    avatar.src = avatarUrl;
+  };
+
+  bg.src = bgUrl;
+}
   async function loadGallery() {
 
   try {
 
-    const provider =
-      new ethers.BrowserProvider(window.ethereum);
+    const provider = new ethers.BrowserProvider(window.ethereum);
 
-    const contract =
-      new ethers.Contract(
-        contractAddress,
-        contractABI,
-        provider
-      );
+    const contract = new ethers.Contract(
+      contractAddress,
+      contractABI,
+      provider
+    );
 
-    const total =
-      Number(await contract.tokenId());
+    const total = Number(await contract.tokenId());
 
-    const gallery =
-      document.getElementById("gallery");
-
+    const gallery = document.getElementById("gallery");
     gallery.innerHTML = "";
-    
-const shownNames = new Set();
-    
-    for(let i=1;i<=total;i++){
 
-      try{
+    const shownUsers = new Set();
 
-        const uri =
-          await contract.tokenURI(i);
+    for (let i = 1; i <= total; i++) {
 
-        if(
-          !uri.startsWith(
-            "data:application/json;base64,"
-          )
-        ){
+      try {
+
+        const uri = await contract.tokenURI(i);
+
+        if (!uri.startsWith("data:application/json;base64,")) {
           continue;
         }
 
-        const metadata =
-          JSON.parse(
-            atob(
-              uri.split(",")[1]
-            )
-          );
-
-const nftName =
-  metadata.name || ("NFT #" + i);
-        const username =
-  metadata.username ||
-  nftName.replace(
-    "Ritual NFT @",
-    ""
-  );
-
-const assets =
-  getCardAssets(username);
-
-const imageUrl =
-  assets.avatar;
-
-if (shownNames.has(nftName)) {
-  continue;
-}
-
-shownNames.add(nftName);
-        
-
-        const card =
-          document.createElement("div");
-
-        card.style.cursor = "pointer";
-
-card.onclick = () => {
-
-  alert(
-    "NFT #" + i +
-    "\n" +
-    (metadata.name || "")
-  );
-
-}; 
-        card.style.background =
-          "#0d1f14";
-
-        card.style.border =
-          "1px solid #4ade80";
-
-        card.style.borderRadius =
-          "16px";
-
-        card.style.padding =
-          "10px";
-
-        card.style.boxShadow =
-          "0 0 15px rgba(74,222,128,.25)";
-
-        const img =
-          document.createElement("img");
-
-        img.src =
-  imageUrl;
-
-        img.style.width =
-          "160px";
-
-        img.style.height =
-          "160px";
-
-        img.style.objectFit =
-          "cover";
-
-        img.style.borderRadius =
-          "12px";
-
-        const name =
-          document.createElement("div");
-
-const id =
-  document.createElement("div");
-
-id.innerText =
-  "#" + i;
-
-id.style.color =
-  "#4ade80";
-
-id.style.marginTop =
-  "6px";
-        
-        name.innerText =
-          metadata.name || ("NFT #" + i);
-
-        name.style.marginTop =
-          "8px";
-
-        name.style.color =
-          "#b6ff5c";
-
-        card.appendChild(img);
-        card.appendChild(name);
-
-        card.appendChild(id);
-        gallery.appendChild(card);
-
-      }catch(err){
-
-        console.log(
-          "NFT",
-          i,
-          "error",
-          err
+        const metadata = JSON.parse(
+          atob(uri.split(",")[1])
         );
 
-      }
+        const nftName = metadata.name || ("NFT #" + i);
 
+        const username =
+          metadata.username ||
+          nftName.replace("Ritual NFT @", "").trim();
+
+        // ❗ ДЕДУПЛИКАТ ПО USERNAME (а не по NFT name)
+        if (shownUsers.has(username)) continue;
+        shownUsers.add(username);
+
+        const assets = getCardAssets(username);
+
+        const card = document.createElement("div");
+
+        /* ===== CARD STYLE ===== */
+        card.style.width = "180px";
+        card.style.height = "260px";
+        card.style.borderRadius = "16px";
+        card.style.overflow = "hidden";
+        card.style.position = "relative";
+        card.style.cursor = "pointer";
+        card.style.boxShadow = "0 0 15px rgba(74,222,128,.25)";
+        card.style.border = "1px solid #4ade80";
+
+        card.onclick = () => {
+          alert(username + "\n" + nftName);
+        };
+
+        /* ===== BACKGROUND ===== */
+        const bg = document.createElement("img");
+        bg.src = assets.bg;
+        bg.style.width = "100%";
+        bg.style.height = "100%";
+        bg.style.objectFit = "cover";
+        bg.style.position = "absolute";
+        bg.style.top = "0";
+        bg.style.left = "0";
+
+        /* ===== DARK OVERLAY ===== */
+        const overlay = document.createElement("div");
+        overlay.style.position = "absolute";
+        overlay.style.top = "0";
+        overlay.style.left = "0";
+        overlay.style.width = "100%";
+        overlay.style.height = "100%";
+        overlay.style.background = "rgba(0,0,0,0.35)";
+
+        /* ===== AVATAR ===== */
+        const avatar = document.createElement("img");
+        avatar.src = assets.avatar;
+        avatar.style.width = "90px";
+        avatar.style.height = "90px";
+        avatar.style.borderRadius = "50%";
+        avatar.style.objectFit = "cover";
+        avatar.style.position = "absolute";
+        avatar.style.top = "35px";
+        avatar.style.left = "50%";
+        avatar.style.transform = "translateX(-50%)";
+        avatar.style.border = "2px solid #b6ff5c";
+
+        /* ===== TEXT ===== */
+        const name = document.createElement("div");
+        name.innerText = "@" + username;
+        name.style.position = "absolute";
+        name.style.bottom = "35px";
+        name.style.width = "100%";
+        name.style.textAlign = "center";
+        name.style.color = "#b6ff5c";
+        name.style.fontWeight = "bold";
+        name.style.fontSize = "14px";
+
+        const title = document.createElement("div");
+        title.innerText = "RITUAL NFT";
+        title.style.position = "absolute";
+        title.style.bottom = "15px";
+        title.style.width = "100%";
+        title.style.textAlign = "center";
+        title.style.color = "#fff";
+        title.style.fontSize = "10px";
+        title.style.opacity = "0.8";
+
+        /* ===== BUILD ===== */
+        card.appendChild(bg);
+        card.appendChild(overlay);
+        card.appendChild(avatar);
+        card.appendChild(name);
+        card.appendChild(title);
+
+        gallery.appendChild(card);
+
+      } catch (err) {
+        console.log("NFT", i, "error", err);
+      }
     }
 
-  } catch(e) {
-
-    console.error(
-      "Gallery error",
-      e
-    );
-
+  } catch (e) {
+    console.error("Gallery error", e);
   }
-
 }
 /* =========================
    INIT
