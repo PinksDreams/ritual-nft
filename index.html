@@ -367,10 +367,10 @@ async function mintNFT() {
       `https://pinksdreams.github.io/ritual-nft/avatars/avatar${avatarIndex}.png`;
 
     const metadata = {
-      name: "Ritual NFT @" + currentUser,
-      description: "Ritual NFT Card",
-      image: imageUrl
-    };
+  name: "Ritual NFT @" + currentUser,
+  description: "Ritual NFT Card",
+  username: currentUser
+};
 
     const tokenURI =
       "data:application/json;base64," +
@@ -438,6 +438,32 @@ await loadGallery();
   }
 
 }
+  function getCardAssets(username){
+
+  let hash = 0;
+
+  for(let i=0;i<username.length;i++){
+    hash =
+      username.charCodeAt(i) +
+      ((hash << 5) - hash);
+  }
+
+  hash = Math.abs(hash);
+
+  const avatarIndex =
+    (hash % 18) + 1;
+
+  const bgIndex =
+    (Math.floor(hash / 18) % 9) + 1;
+
+  return {
+    avatar:
+      `https://pinksdreams.github.io/ritual-nft/avatars/avatar${avatarIndex}.png`,
+    bg:
+      `https://pinksdreams.github.io/ritual-nft/bg/bg${bgIndex}.png`
+  };
+
+}
   async function loadGallery() {
 
   try {
@@ -486,6 +512,18 @@ const shownNames = new Set();
 
 const nftName =
   metadata.name || ("NFT #" + i);
+        const username =
+  metadata.username ||
+  nftName.replace(
+    "Ritual NFT @",
+    ""
+  );
+
+const assets =
+  getCardAssets(username);
+
+const imageUrl =
+  assets.avatar;
 
 if (shownNames.has(nftName)) {
   continue;
@@ -493,9 +531,6 @@ if (shownNames.has(nftName)) {
 
 shownNames.add(nftName);
         
-        const imageUrl =
-  metadata.image ||
-  "https://pinksdreams.github.io/ritual-nft/logo.png";
 
         const card =
           document.createElement("div");
